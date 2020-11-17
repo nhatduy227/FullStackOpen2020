@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react'
 import Note from "./components/Note.js";
+import noteService from './services/notes'
 
 const App = (props) => {
-  const [notes, setNotes] = useState(props.notes);
+  const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(true)
 
@@ -18,9 +19,32 @@ const App = (props) => {
       important: true,
       id: notes.length + 1,
     }
+    // Post new notes to db.json
+    noteService
+    .create(noteObject)
+    .then(response => {
+      setNotes(notes.concat(response.data))
+      setNewNote('')
+    })
+
+    
+  }
+
+  const toggleImportanceOf = id => {
+    const note = notes.find(n => n.id === id)
+    const changedNote = { ...note, important: !note.important }
   
-    setNotes(notes.concat(noteObject))
-    setNewNote('')
+    noteService
+      .update(id, changedNote)
+      .then(response => {
+        setNotes(notes.map(note => note.id !== id ? note : response.data))
+      })
+      .catch(error => {
+        alert(
+          `the note '${note.content}' was already deleted from server`
+        )
+        setNotes(notes.filter(n => n.id !== id))
+      })
   }
 
   const handleNoteChange = (event) => {
@@ -28,6 +52,16 @@ const App = (props) => {
     setNewNote(event.target.value)
   }
 
+  // Retrieve data from db.json 
+  const hook = () => {
+    console.log('effect')
+    noteService
+      .getAll()
+      .then(response => {
+        setNotes(response.data)
+      })
+  }
+  useEffect(hook, [])
 
   return (
     <div>
@@ -38,8 +72,12 @@ const App = (props) => {
         </button>
       </div>
       <ul>
-        {notesToShow.map((note) => (
-          <Note key={note.id} note={note} />
+        {notesToShow.map((note, i) => (
+          <Note
+          key={i}
+          note={note} 
+          toggleImportance={() => toggleImportanceOf(note.id)}
+        />
         ))}
       </ul>
       <form onSubmit={addNote}>
