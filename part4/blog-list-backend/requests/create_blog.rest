@@ -1,0 +1,10 @@
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+
+{
+    "title": "How to become a fullstack dev",
+    "author": "Nom",
+    "url": "http://Nom.com",
+    "likes": 5,
+    "userId": "5e8f59a772afe90d7c7c167e"
+}
